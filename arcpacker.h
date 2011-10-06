@@ -15,33 +15,10 @@
 #include <QFile>
 #include <QByteArray>
 
-typedef struct packed_block_entry_t
-{
-    bool isRef;
-    union
-    {
-        quint8 value;
-        quint16 ref;
-    };
-    size_t start;
-    size_t length;
-} packed_block_entry_t;
+#include "datatypes.h"
+#include "module.h"
 
-typedef struct packed_block_t
-{
-    packed_block_entry_t entry[8];
-    quint16 header;
-} packed_block_t;
-
-typedef struct match_info_t
-{
-    size_t maxMatchedLength;
-    size_t maxChunkStart;
-    bool valid;
-    quint8 chunkStart;
-} match_info_t;
-
-class ArcPacker
+class ArcPacker : public Module
 {
 public:
     ArcPacker();

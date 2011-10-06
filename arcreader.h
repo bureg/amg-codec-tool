@@ -19,8 +19,9 @@
 #include <QPair>
 
 #include "datatypes.h"
+#include "module.h"
 
-class ArcReader
+class ArcReader : public Module
 {
 public:
     ArcReader();

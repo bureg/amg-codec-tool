@@ -15,9 +15,11 @@
 #include <QtXml>
 #include <QString>
 
+#include "module.h"
+
 typedef QByteArray::iterator DataIterator;
 
-class ScfEncoder
+class ScfEncoder : public Module
 {
 public:
     ScfEncoder();
@@ -26,7 +28,6 @@ public:
     void saveScf(QString path);
 
 private:
-    void fatalExit(char *reason);
     void outputLabels(QFile &file);
     void outputLabelsHeader(QFile &file);
     void outputScfHeader(QFile &file);

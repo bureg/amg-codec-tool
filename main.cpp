@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 {
     if(argc < 2)
     {
-        fprintf(stderr, "ERR: No parameters! See usage info below.");
+        fprintf(stderr, "ERR: No parameters! See usage info below.\n");
         printHelp();
     }
 

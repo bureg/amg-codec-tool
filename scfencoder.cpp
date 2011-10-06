@@ -13,7 +13,7 @@
 #include "defines.h"
 #include "scfencoder.h"
 
-ScfEncoder::ScfEncoder()
+ScfEncoder::ScfEncoder() : Module("ScfEncoder")
 {
 }
 
@@ -342,11 +342,4 @@ void ScfEncoder::saveScf(QString path)
     outputCodeSection(fileOut);
 
     fileOut.close();
-}
-
-void ScfEncoder::fatalExit(char *reason)
-{
-    fprintf(stderr, "SCF Coder operation abort! [%s]\n", reason);
-    getchar();
-    exit(1);
 }

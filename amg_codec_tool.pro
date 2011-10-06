@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     arcwriter.cpp \
     arcpacker.cpp \
     scfencoder.cpp \
-    scfdecoder.cpp
+    scfdecoder.cpp \
+    module.cpp
 
 HEADERS += \
     arcreader.h \
@@ -28,4 +29,6 @@ HEADERS += \
     datatypes.h \
     scfencoder.h \
     scfdecoder.h \
-    defines.h
+    defines.h \
+    module.h \
+    xmlhelpers.h

@@ -15,9 +15,11 @@
 #include <QtXml>
 #include <QString>
 
+#include "module.h"
+
 typedef QByteArray::iterator DataIterator;
 
-class ScfDecoder
+class ScfDecoder : public Module
 {
 public:
     ScfDecoder();
@@ -26,7 +28,6 @@ public:
     void saveXml(QString path);
 
 private:
-    void fatalExit(char *reason);
     void createXml();
     void checkHeader(QFile &file);
     void checkLabelsHeader(QFile &file);
