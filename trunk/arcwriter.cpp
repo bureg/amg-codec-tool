@@ -9,8 +9,9 @@
 */
 
 #include "arcwriter.h"
+#include "defines.h"
 
-ArcWriter::ArcWriter()
+ArcWriter::ArcWriter() : Module("ArcWriter")
 {
 }
 
@@ -40,49 +41,29 @@ int ArcWriter::loadStructure(QString structurePath)
 
     // Get undecoded header
     QDomElement headerNode;
+    GET_NODE(root, "header", headerNode);
     headerNode = root.firstChildElement("header");
-    if( headerNode.isNull())
-    {
-        fprintf(stderr, "<header> container not found!\n");
-        return 1;
-    }
 
-    QString entriesCountString = headerNode.attribute("entriesCount");
-    QString dataOffsetString = headerNode.attribute("dataOffset");
-    entriesCount = entriesCountString.toInt(NULL, 0);
-    dataOffset = dataOffsetString.toInt(NULL, 0);
+    ATTRIBUTE_TO_UINT_NONZERO(headerNode, "entriesCount", entriesCount, quint32);
+    ATTRIBUTE_TO_UINT_NONZERO(headerNode, "dataOffset", dataOffset, quint32);
 
-    undecodedHeader = QByteArray::fromBase64(headerNode.text().toAscii());
+    GET_NODE_BINARY_DATA(headerNode, undecodedHeader);
 
     /* Load entries list */
-    QDomElement entriesNode;
-    entriesNode = root.firstChildElement("entries");
-    if( entriesNode.isNull())
-    {
-        fprintf(stderr, "<entries> container not found!\n");
-        return 1;
-    }
-
     size_t counter = 0;
-    QDomElement entryNode = entriesNode.firstChildElement("entry");
+    QDomElement entriesNode, entryNode;
+
+    GET_NODE(root, "entries", entriesNode);
+    GET_NODE(entriesNode, "entry", entryNode);
+
     while( !entryNode.isNull())
     {
         arc_entry_t entry;
 
-        QString offsetString = entryNode.attribute("offset");
-        QString sizeString = entryNode.attribute("size");
-        QString unknown0String = entryNode.attribute("unknown0");
-        QString unknown1String = entryNode.attribute("unknown1");
-
-        quint32 offset = offsetString.toUInt(NULL, 0);
-        quint32 size = sizeString.toUInt(NULL, 0);
-        quint32 unknown0 = unknown0String.toUInt(NULL, 0);
-        quint32 unknown1 = unknown1String.toUInt(NULL, 0);
-
-        entry.offset = offset;
-        entry.size = size;
-        entry.unknown0 = unknown0;
-        entry.unknown1 = unknown1;
+        ATTRIBUTE_TO_UINT_NONZERO(entryNode, "offset", entry.offset, quint32);
+        ATTRIBUTE_TO_UINT_NONZERO(entryNode, "size", entry.size, quint32);
+        ATTRIBUTE_TO_UINT(entryNode, "unknown0", entry.unknown0, quint32);
+        ATTRIBUTE_TO_UINT(entryNode, "unknown1", entry.unknown1, quint32);
 
         entries.push_back(entry);
 
@@ -98,20 +79,19 @@ int ArcWriter::loadStructure(QString structurePath)
     }
 
     /* Load file names list */
-    QDomElement filesNode;
-    filesNode = root.firstChildElement("files");
-    if( filesNode.isNull())
-    {
-        fprintf(stderr, "<files> container not found!\n");
-        return 1;
-    }
-
     counter = 0;
-    QDomElement fileNode = filesNode.firstChildElement("file");
+    QDomElement filesNode, fileNode;
+    GET_NODE(root, "files", filesNode);
+    GET_NODE(filesNode, "file", fileNode);
+
     while( !fileNode.isNull())
     {
-        QString name = fileNode.attribute("filename");
-        quint32 size = fileNode.attribute("size").toInt();
+        quint32 size;
+        QString name;
+
+        ATTRIBUTE_TO_UINT_NONZERO(fileNode, "size", size, quint32);
+        ATTRIBUTE_TO_STRING_NOT_EMPTY(fileNode, "filename", name);
+
         files.push_back( qMakePair< QString, quint32>(name, size));
 
         /* Proceed */
@@ -149,7 +129,6 @@ int ArcWriter::buildArchive(QString sourceDir, QString outputPath, bool checkSiz
     for( it = entries.begin(); it != entries.end(); ++it)
     {
         arc_entry_t entry = *it;
-        //fprintf(stderr, "-> 0x%x\n", it->offset);
         outputFile.write((char*)&entry, sizeof(arc_entry_t));
     }
 

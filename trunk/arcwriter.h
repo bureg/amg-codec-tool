@@ -18,8 +18,9 @@
 #include <QtXml>
 
 #include "datatypes.h"
+#include "module.h"
 
-class ArcWriter
+class ArcWriter : public Module
 {
 public:
     ArcWriter();

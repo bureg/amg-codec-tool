@@ -9,12 +9,12 @@
 */
 
 #include "arcreader.h"
+#include "defines.h"
 
 #include <string.h>
 
-ArcReader::ArcReader()
+ArcReader::ArcReader() : Module("ArcReader")
 {
-
 }
 
 ArcReader::~ArcReader()
@@ -81,25 +81,20 @@ int ArcReader::extract(QString outputDir)
 
     /* Prepare header */
     QDomElement headerNode = xmlData.createElement("header");
-    QDomAttr entriesCountAttr = xmlData.createAttribute("entriesCount");
-    QDomAttr dataOffsetAttr = xmlData.createAttribute("dataOffset");
+    APPEND_ATTRIBUTE_DEC(xmlData, headerNode, "entriesCount", entriesCount);
+    APPEND_ATTRIBUTE_HEX(xmlData, headerNode, "dataOffset", dataOffset);
 
     QDomElement undecodedDataNode = xmlData.createElement("undecodedData");
     QDomText undecodedDataValue = xmlData.createTextNode(undecodedHeader.toBase64());
 
-    entriesCountAttr.setValue(QString().sprintf("%d", entriesCount));
-    dataOffsetAttr.setValue(QString().sprintf("0x%x", dataOffset));
-
     /* Build header XML tree */
     root.appendChild(headerNode);
     headerNode.appendChild(undecodedDataNode);
-    headerNode.setAttributeNode(entriesCountAttr);
-    headerNode.setAttributeNode(dataOffsetAttr);
     undecodedDataNode.appendChild(undecodedDataValue);
 
     /* Entries to XML */
     QDomElement entriesNode = xmlData.createElement("entries");
-    entriesNode.setAttributeNode(entriesCountAttr);
+    APPEND_ATTRIBUTE_DEC(xmlData, entriesNode, "entriesCount", entriesCount);
     root.appendChild(entriesNode);
 
     for(it = entries.begin(); it != entries.end(); ++it)
@@ -110,20 +105,11 @@ int ArcReader::extract(QString outputDir)
         quint32 unknown1 = it->unknown1;
 
         QDomElement entryNode = xmlData.createElement("entry");
-        QDomAttr offsetAttr = xmlData.createAttribute("offset");
-        QDomAttr sizeAttr = xmlData.createAttribute("size");
-        QDomAttr unknown0Attr = xmlData.createAttribute("unknown0");
-        QDomAttr unknown1Attr = xmlData.createAttribute("unknown1");
 
-        offsetAttr.setValue(QString().sprintf("0x%x", offset));
-        sizeAttr.setValue(QString().sprintf("0x%x", size));
-        unknown0Attr.setValue(QString().sprintf("0x%x", unknown0));
-        unknown1Attr.setValue(QString().sprintf("0x%x", unknown1));
-
-        entryNode.setAttributeNode(offsetAttr);
-        entryNode.setAttributeNode(sizeAttr);
-        entryNode.setAttributeNode(unknown0Attr);
-        entryNode.setAttributeNode(unknown1Attr);
+        APPEND_ATTRIBUTE_HEX(xmlData, entryNode, "offset", offset);
+        APPEND_ATTRIBUTE_HEX(xmlData, entryNode, "size", size);
+        APPEND_ATTRIBUTE_HEX(xmlData, entryNode, "unknown0", unknown0);
+        APPEND_ATTRIBUTE_HEX(xmlData, entryNode, "unknown1", unknown1);
 
         entriesNode.appendChild(entryNode);
     }
@@ -131,7 +117,7 @@ int ArcReader::extract(QString outputDir)
 
     /* XML */
     QDomElement filesNode = xmlData.createElement("files");
-    filesNode.setAttributeNode(entriesCountAttr);
+    APPEND_ATTRIBUTE_DEC(xmlData, filesNode, "entriesCount", entriesCount);
     root.appendChild(filesNode);
 
     /* Sort entries */
@@ -175,21 +161,13 @@ int ArcReader::extract(QString outputDir)
 
         /* XML */
         QDomElement fileNode = xmlData.createElement("file");
-        QDomAttr offsetAttr = xmlData.createAttribute("offset");
-        QDomAttr sizeAttr = xmlData.createAttribute("size");
-        QDomAttr fileNameAttr = xmlData.createAttribute("filename");
-        QDomAttr fileTypeAttr = xmlData.createAttribute("type");
 
-        offsetAttr.setValue(QString().sprintf("0x%x", offset));
-        sizeAttr.setValue(QString().sprintf("0x%x", size));
-        fileNameAttr.setValue(fileName);
-        fileTypeAttr.setValue(fileType);
+        APPEND_ATTRIBUTE_HEX(xmlData, fileNode, "offset", offset);
+        APPEND_ATTRIBUTE_HEX(xmlData, fileNode, "size", size);
+        APPEND_ATTRIBUTE_STR(xmlData, fileNode, "filename", fileName);
+        APPEND_ATTRIBUTE_STR(xmlData, fileNode, "type", fileType);
 
         filesNode.appendChild(fileNode);
-        fileNode.setAttributeNode(offsetAttr);
-        fileNode.setAttributeNode(sizeAttr);
-        fileNode.setAttributeNode(fileNameAttr);
-        fileNode.setAttributeNode(fileTypeAttr);
 
         ++fileCounter;
     }

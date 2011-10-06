@@ -13,7 +13,7 @@
 #include "defines.h"
 #include "scfdecoder.h"
 
-ScfDecoder::ScfDecoder()
+ScfDecoder::ScfDecoder() : Module("ScfDecoder")
 {
 }
 
@@ -394,13 +394,6 @@ void ScfDecoder::saveXml(QString path)
     xmlOutStream.flush();
 
     outFile.close();
-}
-
-void ScfDecoder::fatalExit(char *reason)
-{
-    fprintf(stderr, "XML Coder operation abort! [%s]\n", reason);
-    getchar();
-    exit(1);
 }
 
 void ScfDecoder::createXml()

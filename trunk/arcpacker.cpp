@@ -10,7 +10,7 @@
 
 #include "arcpacker.h"
 
-ArcPacker::ArcPacker()
+ArcPacker::ArcPacker() : Module("ArcPacker")
 {
 }
 
@@ -298,9 +298,6 @@ int ArcPacker::pack(QString inFilePath, QString outFilePath)
         {
             fprintf(stderr, "Processed: %d blocks\n", counter);
         }
-
-        //if(counter > 3)
-        //    stop = true;
     }
 
     // -- Loop end
@@ -333,16 +330,12 @@ int ArcPacker::unpack(QString inFilePath, QString outFilePath)
         inFile.read((char*)&blockHeader, sizeof(quint8));
         ++bytesRead;
 
-        //fprintf(stderr, "Block start\n");
-
         for(size_t i = 0; i < 8; i++)
         {
             if(blockHeader & 0x1)
             {
                 inFile.read((char*)(buf + bufPos), sizeof(quint8));
                 outFile.write((char*)(buf + bufPos), sizeof(quint8));
-
-                //fprintf(stderr, "0x%02x -> 0x%02x\n", bytesWritten, buf[bufPos]);
 
                 ++bytesRead;
                 ++bytesWritten;
@@ -358,8 +351,6 @@ int ArcPacker::unpack(QString inFilePath, QString outFilePath)
                 quint16 start = reference & 0xFF;
                 size_t section = (reference >> 13) & 0x7;
 
-                //fprintf(stderr, "[0x%x, %d, %d] 0x%02x -> ", start, length, section, bytesWritten);
-
                 for(int j = 0; j < length; j++)
                 {
                     quint8 value = getBufItem(start + j + section * SECTION_SZ);
@@ -368,10 +359,7 @@ int ArcPacker::unpack(QString inFilePath, QString outFilePath)
                     outFile.write((char*)&value, sizeof(quint8));
 
                     ++bytesWritten;
-
-                    //fprintf(stderr, "0x%02x ", value);
                 }
-                //fprintf(stderr, "\n");
 
                 bufPos += length;
             }
