@@ -15,6 +15,7 @@
 #include <QtXml>
 #include <QString>
 
+#include "defines.h"
 #include "module.h"
 
 typedef QByteArray::iterator DataIterator;
@@ -26,6 +27,9 @@ public:
 
     void load(QString path);
     void saveScf(QString path);
+
+    void setLanguage(lang_id lang);
+    lang_id getLanguage();
 
 private:
     void outputLabels(QFile &file);
@@ -46,6 +50,7 @@ private:
     // ----- XML data container
     QDomDocument xmlData;
     QDomElement root;
+    lang_id lang;
 };
 
 #endif // SCFCODER_H

@@ -10,6 +10,8 @@
 
 #include <QString>
 
+#include "langdb.h"
+
 #include "arcreader.h"
 #include "arcwriter.h"
 #include "arcpacker.h"
@@ -32,10 +34,10 @@ void printHelp()
     //printf("codec_tool.exe <file>\n"); //-- TODO: auto mode
     printf("codec_tool.exe --decode-pac <file.PAC> <file.ARC>\n");
     printf("codec_tool.exe --encode-pac <file.ARC> <file.PAC>\n");
-    printf("codec_tool.exe --decode-arc [--check-size] <DIR> <structure.XML> <file.ARC>\n");
-    printf("codec_tool.exe --encode-arc <file.ARC> <DIR> <structure.XML>\n");
+    printf("codec_tool.exe --decode-arc <file.ARC> <DIR> <structure.XML>\n");
+    printf("codec_tool.exe --encode-arc [--check-size] <DIR> <structure.XML> <file.ARC>\n");
     printf("codec_tool.exe --decode-scf <file.SCF> <file.XML>\n");
-    printf("codec_tool.exe --encode-scf <file.XML> <file.SCF>\n");
+    printf("codec_tool.exe --encode-scf [--translate <LANGUAGE>] <file.XML> <file.SCF>\n");
 
     exit(1);
 }
@@ -48,7 +50,11 @@ int main(int argc, char *argv[])
         printHelp();
     }
 
-    if(strncmp(argv[1], "--decode-pac", strlen("--decode-pac")) == 0)
+    if(strncmp(argv[1], "--help", strlen("--help")) == 0)
+    {
+        printHelp();
+    }
+    else if(strncmp(argv[1], "--decode-pac", strlen("--decode-pac")) == 0)
     {
         if(argc != 4)
         {
@@ -137,8 +143,22 @@ int main(int argc, char *argv[])
             printHelp();
         }
 
-        QString inputFilePath(argv[2]);
-        QString outputFilePath(argv[3]);
+        int nextParam = 2;
+        if(strncmp(argv[2], "--translate", strlen("--translate")) == 0)
+        {
+            lang_id translateTo = getLangIdByName(argv[3]);
+            if(translateTo == LANGUAGE_UNKNOWN)
+            {
+                fprintf(stderr, "ERR: Unknown translation language! See usage info below.");
+                printHelp();
+            }
+
+            xml2scf.setLanguage(translateTo);
+            nextParam = 4;
+        }
+
+        QString inputFilePath(argv[nextParam]);
+        QString outputFilePath(argv[nextParam + 1]);
 
         xml2scf.load(inputFilePath);
         xml2scf.saveScf(outputFilePath);

@@ -1,3 +1,13 @@
+/*
+  This file is a part of the
+  Amagami SS PS2 Translation Project
+  by FreeSmiler
+
+  You may feel free to use this code if you want so.
+  I provide no guarantee that this code is working,
+  useful or anything else. Use it at your own risk.
+*/
+
 #ifndef MODULE_H
 #define MODULE_H
 

@@ -52,4 +52,13 @@ typedef struct match_info_t
     quint8 chunkStart;
 } match_info_t;
 
+typedef struct size_offset_t
+{
+    quint32 size;
+    quint32 offset;
+
+    size_offset_t() {}
+    size_offset_t(quint32 _size, quint32 _offset) : size(_size), offset(_offset) {}
+} size_offset_t;
+
 #endif // DATATYPES_H

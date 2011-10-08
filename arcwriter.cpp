@@ -86,13 +86,15 @@ int ArcWriter::loadStructure(QString structurePath)
 
     while( !fileNode.isNull())
     {
-        quint32 size;
+        quint32 offset;
         QString name;
 
-        ATTRIBUTE_TO_UINT_NONZERO(fileNode, "size", size, quint32);
+        ATTRIBUTE_TO_UINT_NONZERO(fileNode, "offset", offset, quint32);
         ATTRIBUTE_TO_STRING_NOT_EMPTY(fileNode, "filename", name);
 
-        files.push_back( qMakePair< QString, quint32>(name, size));
+        files.push_back(name);
+
+        offsetToFileName.insert(offset, name);
 
         /* Proceed */
         fileNode = fileNode.nextSiblingElement("file");
@@ -110,6 +112,8 @@ int ArcWriter::loadStructure(QString structurePath)
 
 int ArcWriter::buildArchive(QString sourceDir, QString outputPath, bool checkSize)
 {
+    QHash<quint32, size_offset_t> oldOffsetToNewSizeOffset;
+
     QFile outputFile(outputPath);
 
     if(!outputFile.open(QIODevice::WriteOnly))
@@ -124,20 +128,52 @@ int ArcWriter::buildArchive(QString sourceDir, QString outputPath, bool checkSiz
     // Write undecoded header
     outputFile.write(undecodedHeader);
 
-    // Write entries list
+    // Update entries data
     QVector<arc_entry_t>::iterator it;
+    QVector<arc_entry_t> sortedEntries(entries);
+
+    qSort(sortedEntries.begin(), sortedEntries.end(), arc_entry_t::lessThan);
+
+    quint32 accumOffset = sortedEntries.begin()->offset;
+    for( it = sortedEntries.begin(); it != sortedEntries.end(); ++it)
+    {
+        arc_entry_t entry = *it;
+        QString fileName = offsetToFileName.value(entry.offset);
+
+        QString path = sourceDir + QString("\\") + fileName;
+        QFile fileTmp(path);
+        fileTmp.open(QIODevice::ReadOnly);
+
+        quint32 realSize = fileTmp.size();
+
+        fileTmp.close();
+
+        oldOffsetToNewSizeOffset.insert(it->offset, size_offset_t(realSize, accumOffset));
+
+        accumOffset += realSize;
+    }
+
+    sortedEntries.clear();
+
+    // Write entries list
     for( it = entries.begin(); it != entries.end(); ++it)
     {
         arc_entry_t entry = *it;
+
+        // Apply corrections
+        size_offset_t newInfo = oldOffsetToNewSizeOffset.value(entry.offset);
+        entry.offset = newInfo.offset;
+        entry.size = newInfo.size;
+
         outputFile.write((char*)&entry, sizeof(arc_entry_t));
     }
 
     // Copy files data
-    QVector< QPair< QString, quint32 > >::iterator file_it;
+    QVector<QString>::iterator file_it;
 
     for( file_it = files.begin(); file_it != files.end(); ++file_it)
     {
-        QString path = sourceDir + QString("\\") + file_it->first;
+        QString path = sourceDir + QString("\\") + *file_it;
         QFile fileIn(path);
 
         if(!fileIn.open(QIODevice::ReadOnly))
@@ -146,11 +182,11 @@ int ArcWriter::buildArchive(QString sourceDir, QString outputPath, bool checkSiz
             return 1;
         }
 
-        if (checkSize && (fileIn.size() != file_it->second))
+        /*if (checkSize && (fileIn.size() != file_it->second))
         {
             fprintf(stderr, "File [%s] size check failed!\n", path.toAscii().data());
             return 1;
-        }
+        }*/
 
         outputFile.write(fileIn.readAll());
         fileIn.close();
