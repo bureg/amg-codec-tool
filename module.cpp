@@ -28,6 +28,5 @@ Module::Module(char * _moduleName)
 void Module::fatalExit(char *reason)
 {
     fprintf(stderr, "Module [%s] operation abort! Reason: [%s]\n", moduleName, reason);
-    getchar();
     exit(1);
 }

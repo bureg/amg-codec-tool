@@ -335,6 +335,7 @@ void ScfEncoder::outputCodeSection(QFile &file)
 
         switch (entryType)
         {
+            case ENTRY_TYPE_01: /* Parameter */
             case ENTRY_TYPE_03: /* Parameter */
                 WRITE_VAR(file, entryType);
                 processEntryType03(file, entryNode);
@@ -373,8 +374,6 @@ void ScfEncoder::saveScf(QString path)
     {
         fatalExit("Cannot open output file!");
     }
-
-    fprintf(stderr, "Starting SCF encoding...\n");
 
     outputScfHeader(fileOut);
     outputLabelsHeader(fileOut);
