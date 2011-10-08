@@ -42,14 +42,19 @@ void convertToSjis(lang_id lang, QByteArray &data, QString &text)
     {
         QChar c = text.at(i);
 
-        data.append(encoder.firstByte);
         if(c.isUpper())
         {
+            data.append(encoder.firstByte);
             data.append(c.cell() + encoder.upperOffset);
         }
         else if(c.isLower())
         {
+            data.append(encoder.firstByte);
             data.append(c.cell() + encoder.lowerOffset);
+        }
+        else if(c.isSpace())
+        {
+            data.append(0x20);
         }
         else
         {

@@ -39,6 +39,7 @@ const size_t FUNCTIONS_HEADER_LENGTH = 2;
 /* Entry types */
 enum
 {
+    ENTRY_TYPE_01 = 0x01,
     ENTRY_TYPE_03 = 0x03,
     ENTRY_TYPE_05 = 0x05,
     ENTRY_TYPE_06 = 0x06,
