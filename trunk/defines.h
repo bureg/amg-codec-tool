@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <stddef.h>
 
+#include <QtGlobal>
+
 #include "xmlhelpers.h"
 
 /* Header */
@@ -35,10 +37,21 @@ const size_t FUNCTIONS_HEADER_LENGTH = 2;
 #define IS_ASCII_CODE(c) ((c) < 0x80)
 
 /* Entry types */
-#define ENTRY_TYPE_03 0x03
-#define ENTRY_TYPE_05 0x05
-#define ENTRY_TYPE_06 0x06
-#define ENTRY_TYPE_07 0x07
-#define ENTRY_TYPE_08 0x08
+enum
+{
+    ENTRY_TYPE_03 = 0x03,
+    ENTRY_TYPE_05 = 0x05,
+    ENTRY_TYPE_06 = 0x06,
+    ENTRY_TYPE_07 = 0x07,
+    ENTRY_TYPE_08 = 0x08
+};
 
+/* Languages */
+typedef enum lang_id
+{
+    LANGUAGE_ENG,
+    LANGUAGE_RUS,
+    LANGUAGE_JAP,
+    LANGUAGE_UNKNOWN
+} lang_id;
 #endif // DEFINES_H

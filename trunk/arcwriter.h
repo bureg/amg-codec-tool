@@ -16,6 +16,7 @@
 #include <QByteArray>
 #include <QVector>
 #include <QtXml>
+#include <QHash>
 
 #include "datatypes.h"
 #include "module.h"
@@ -36,7 +37,8 @@ private:
 
     QByteArray undecodedHeader;
     QVector<arc_entry_t> entries;
-    QVector< QPair< QString, quint32 > > files;
+    QVector<QString> files;
+    QHash<quint32, QString> offsetToFileName;
 };
 
 #endif // ARCWRITER_H

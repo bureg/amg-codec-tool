@@ -10,10 +10,10 @@
 
 #include <QTextCodec>
 
-#include "defines.h"
+#include "langdb.h"
 #include "scfencoder.h"
 
-ScfEncoder::ScfEncoder() : Module("ScfEncoder")
+ScfEncoder::ScfEncoder() : Module("ScfEncoder"), lang(LANGUAGE_JAP)
 {
 }
 
@@ -175,14 +175,58 @@ void ScfEncoder::processEntryType03(QFile &file, QDomElement &parentNode)
 
 void ScfEncoder::convertText(QByteArray &data, QDomElement &parentNode, QTextCodec * codec)
 {
-    QDomElement originalNode;
-    QString originalText;
+    if( getLanguage() == LANGUAGE_JAP)
+    {
+        QDomElement originalNode;
+        QString originalText;
 
-    /* TODO: read <translation> container */
-    GET_NODE(parentNode, "original", originalNode);
-    GET_NODE_TEXT(originalNode, originalText);
+        GET_NODE(parentNode, "original", originalNode);
+        GET_NODE_TEXT(originalNode, originalText);
 
-    data.append(codec->fromUnicode(originalText));
+        data.append(codec->fromUnicode(originalText));
+    }
+    else if (getLanguage() == LANGUAGE_ENG)
+    {
+        QDomElement translationNode;
+        QString translationText;
+
+        GET_NODE(parentNode, "translation", translationNode);
+
+        bool translationEnabled = false;
+        while(!translationNode.isNull())
+        {
+            QString translationLang;
+            QString mode;
+
+            ATTRIBUTE_TO_STRING_NOT_EMPTY(translationNode, "lang", translationLang);
+            ATTRIBUTE_TO_STRING_NOT_EMPTY(translationNode, "mode", mode);
+
+            if(translationLang == QString("eng"))
+            {
+                translationEnabled = (mode == QString("on")) ? true : false;
+                break;
+            }
+
+            translationNode = translationNode.nextSiblingElement("translation");
+        }
+
+        if(!translationNode.isNull() && translationEnabled)
+        {
+            GET_NODE_TEXT(translationNode, translationText);
+            convertToSjis(LANGUAGE_ENG, data, translationText);
+        }
+        else
+        {
+            // Use default
+            QDomElement originalNode;
+            QString originalText;
+
+            GET_NODE(parentNode, "original", originalNode);
+            GET_NODE_TEXT(originalNode, originalText);
+
+            data.append(codec->fromUnicode(originalText));
+        }
+    } /* LANGUAGE_ENG */
 }
 
 void ScfEncoder::processEntryType05(QFile &file, QDomElement &parentNode)
@@ -342,4 +386,14 @@ void ScfEncoder::saveScf(QString path)
     outputCodeSection(fileOut);
 
     fileOut.close();
+}
+
+void ScfEncoder::setLanguage(lang_id lang)
+{
+    this->lang = lang;
+}
+
+lang_id ScfEncoder::getLanguage()
+{
+    return this->lang;
 }
