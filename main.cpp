@@ -32,12 +32,12 @@ void printHelp()
 
     printf("codec_tool.exe --help\n");
     //printf("codec_tool.exe <file>\n"); //-- TODO: auto mode
-    printf("codec_tool.exe --decode-pac <file.PAC> <file.ARC>\n");
-    printf("codec_tool.exe --encode-pac <file.ARC> <file.PAC>\n");
-    printf("codec_tool.exe --decode-arc <file.ARC> <DIR> <structure.XML>\n");
-    printf("codec_tool.exe --encode-arc <DIR> <structure.XML> <file.ARC>\n");
-    printf("codec_tool.exe --decode-scf <file.SCF> <file.XML>\n");
-    printf("codec_tool.exe --encode-scf [--translate <LANGUAGE>] <file.XML> <file.SCF>\n");
+    printf("amg_codec_tool.exe --decode-pac <file.PAC> <file.ARC>\n");
+    printf("amg_codec_tool.exe --encode-pac <file.ARC> <file.PAC>\n");
+    printf("amg_codec_tool.exe --decode-arc <file.ARC> <DIR> <structure.XML>\n");
+    printf("amg_codec_tool.exe --encode-arc <DIR> <structure.XML> <file.ARC>\n");
+    printf("amg_codec_tool.exe --decode-scf <file.SCF> <file.XML>\n");
+    printf("amg_codec_tool.exe --encode-scf [--translate <LANGUAGE>] <file.XML> <file.SCF>\n");
 
     exit(1);
 }
