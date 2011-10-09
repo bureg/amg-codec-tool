@@ -35,7 +35,7 @@ void printHelp()
     printf("codec_tool.exe --decode-pac <file.PAC> <file.ARC>\n");
     printf("codec_tool.exe --encode-pac <file.ARC> <file.PAC>\n");
     printf("codec_tool.exe --decode-arc <file.ARC> <DIR> <structure.XML>\n");
-    printf("codec_tool.exe --encode-arc [--check-size] <DIR> <structure.XML> <file.ARC>\n");
+    printf("codec_tool.exe --encode-arc <DIR> <structure.XML> <file.ARC>\n");
     printf("codec_tool.exe --decode-scf <file.SCF> <file.XML>\n");
     printf("codec_tool.exe --encode-scf [--translate <LANGUAGE>] <file.XML> <file.SCF>\n");
 
@@ -82,27 +82,18 @@ int main(int argc, char *argv[])
     }
     else if (strncmp(argv[1], "--encode-arc", strlen("--encode-arc")) == 0)
     {
-        if((argc != 5) && (argc != 6))
+        if(argc != 5)
         {
             fprintf(stderr, "ERR: Incorrect amount of parameters! See usage info below.");
             printHelp();
         }
 
-        int nextParam = 2;
-        bool checkSize = false;
-
-        if(strncmp(argv[1], "--check-size", strlen("--check-size")) == 0)
-        {
-            checkSize = true;
-            nextParam = 3;
-        }
-
-        QString inputDirPath(argv[nextParam]);
-        QString inputStructureFile(argv[nextParam + 1]);
-        QString outputFilePath(argv[nextParam + 2]);
+        QString inputDirPath(argv[2]);
+        QString inputStructureFile(argv[3]);
+        QString outputFilePath(argv[4]);
 
         writer.loadStructure(inputStructureFile);
-        writer.buildArchive(inputDirPath, outputFilePath, checkSize);
+        writer.buildArchive(inputDirPath, outputFilePath);
     }
     else if (strncmp(argv[1], "--decode-arc", strlen("--decode-arc")) == 0)
     {

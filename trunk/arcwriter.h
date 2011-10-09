@@ -27,7 +27,7 @@ public:
     ArcWriter();
 
     int loadStructure(QString structurePath);
-    int buildArchive(QString sourceDir, QString outputPath, bool checkSize);
+    int buildArchive(QString sourceDir, QString outputPath);
 
 private:
     QDomDocument xmlData;

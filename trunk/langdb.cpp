@@ -18,8 +18,7 @@ static const lang_decoder_t decoder[] =    {{"eng", 3, LANGUAGE_ENG},
 
 static const size_t N_ENCODER_ENTRIES = 1;
 static const sjis_encoder_t sjisEncoder[] = {{LANGUAGE_ENG, 0x82, 0x1F, 0x20},
-                                             {LANGUAGE_RUS, 0x84, 0x30, 0x40}
-                                            };
+                                             {LANGUAGE_RUS, 0x84, 0x30, 0x40}};
 
 /* Accessory functions */
 lang_id getLangIdByName(char * name)

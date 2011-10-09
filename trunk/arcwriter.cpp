@@ -110,7 +110,7 @@ int ArcWriter::loadStructure(QString structurePath)
     return 0;
 }
 
-int ArcWriter::buildArchive(QString sourceDir, QString outputPath, bool checkSize)
+int ArcWriter::buildArchive(QString sourceDir, QString outputPath)
 {
     QHash<quint32, size_offset_t> oldOffsetToNewSizeOffset;
 
