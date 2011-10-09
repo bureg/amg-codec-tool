@@ -53,7 +53,9 @@ void convertToSjis(lang_id lang, QByteArray &data, QString &text)
         }
         else if(c.isSpace())
         {
-            data.append(0x20);
+            /* Unused code to get empty space */
+            data.append((char)0x81);
+            data.append((char)0x3F);
         }
         else
         {
