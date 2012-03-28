@@ -5,14 +5,15 @@
 #-------------------------------------------------
 
 QT       += core xml
-QT       -= gui
 
 TARGET = amg_codec_tool
 CONFIG   += console
-CONFIG   -= app_bundle
+CONFIG   += static
+CONFIG   += staticlib
+
+DEFINES += STATIC
 
 TEMPLATE = app
-
 
 SOURCES += main.cpp \
     arcreader.cpp \
@@ -34,3 +35,6 @@ HEADERS += \
     module.h \
     xmlhelpers.h \
     langdb.h
+
+QTPLUGIN += \
+    qjpcodecs

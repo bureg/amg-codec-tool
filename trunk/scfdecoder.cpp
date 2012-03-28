@@ -19,7 +19,7 @@ ScfDecoder::ScfDecoder() : Module("ScfDecoder")
 
 void ScfDecoder::checkHeader(QFile &file)
 {
-    READ_TO_BUF( file, HEADER_LENGTH);
+    READ_TO_BUF(file, HEADER_LENGTH);
     if( qstrncmp(buffer, header, HEADER_LENGTH))
     {
         fatalExit("Header check FAILED");
@@ -85,14 +85,14 @@ void ScfDecoder::readVariablesSection(QFile &file)
 
     QDomElement varsNode = xmlData.createElement("vars");
 
-    READ_TO_VAR_NONZERO( file, nVars);
+    READ_TO_VAR_NONZERO(file, nVars);
 
     for(size_t i = 0; i < nVars; i++)
     {
         QDomElement itemNode = xmlData.createElement("var");
 
         READ_TO_VAR(file, varId);
-        READ_TO_VAR_NONZERO( file, nameLength);
+        READ_TO_VAR_NONZERO(file, nameLength);
         READ_TO_STRING(file, varName, nameLength);
 
         APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "index", i);
@@ -115,7 +115,7 @@ void ScfDecoder::readBlocksSection(QFile &file)
 
     QDomElement blocksNode = xmlData.createElement("blocks");
 
-    READ_TO_VAR_NONZERO( file, nBlocks);
+    READ_TO_VAR_NONZERO(file, nBlocks);
 
     for(size_t i = 0; i < nBlocks; i++)
     {
@@ -151,7 +151,7 @@ void ScfDecoder::readCodeSection(QFile &file)
 
     QDomElement codeNode = xmlData.createElement("code");
 
-    READ_TO_VAR_NONZERO( file, nEntries);
+    READ_TO_VAR_NONZERO(file, nEntries);
 
     for(size_t i = 0; i < nEntries; i++)
     {
@@ -183,7 +183,7 @@ void ScfDecoder::readCodeSection(QFile &file)
                 break;
 
             default: /* Unknown type */
-                fprintf(stderr, "Type code : 0x%02x @ offset 0x%lx\n", entryType, file.pos());
+                fprintf(stderr, "Type code : 0x%02x @ offset 0x%lx\n", entryType, (long unsigned int)file.pos());
                 fatalExit("Unknown entry type");
         }
 
@@ -198,7 +198,7 @@ void ScfDecoder::processEntryType03(QFile &file, QDomElement &parentNode)
     quint32 value;
     QDomElement itemNode = xmlData.createElement("parameter");
 
-    READ_TO_VAR( file, value);
+    READ_TO_VAR(file, value);
     APPEND_ATTRIBUTE_HEX(xmlData, itemNode, "value", value);
 
     parentNode.appendChild(itemNode);
@@ -222,6 +222,10 @@ void ScfDecoder::processTextString( size_t index,
     APPEND_ATTRIBUTE_DEC(xmlData, textNode, "index", index);
 
     /* Attach original text */
+    //CirqueForge: This was where the programs was failing usually in Qt. I suspected it has to do with "codec"
+    //since I debugged and I get that codec = 0x0, which should not be right. Either the program gets a 0xc00005
+    //error by windows or gets a segmentation error by Qt. This was solved by adding the necessary Qt plugin for
+    //Japanese text.
     QDomElement langNodeJp = xmlData.createElement("original");
     QDomText textContainerJp = xmlData.createTextNode(codec->toUnicode(chunk));
     APPEND_ATTRIBUTE_STR(xmlData, langNodeJp, "lang", "jp");
@@ -325,7 +329,7 @@ void ScfDecoder::processEntryType07(QFile &file, QDomElement &parentNode)
     QString name;
     QDomElement itemNode = xmlData.createElement("function");
 
-    READ_TO_VAR_NONZERO( file, nameLength);
+    READ_TO_VAR_NONZERO(file, nameLength);
     READ_TO_STRING(file, name, nameLength);
 
     APPEND_ATTRIBUTE_STR(xmlData, itemNode, "name", name);
@@ -340,7 +344,7 @@ void ScfDecoder::processEntryType08(QFile &file, QDomElement &parentNode)
     quint16 nameLength;
     QString blockName;
 
-    READ_TO_VAR_NONZERO( file, nBlocks);
+    READ_TO_VAR_NONZERO(file, nBlocks);
 
     for(size_t i = 0; i < nBlocks; i++)
     {
@@ -350,7 +354,7 @@ void ScfDecoder::processEntryType08(QFile &file, QDomElement &parentNode)
         READ_TO_VAR_NONZERO(file, nameLength);
         READ_TO_STRING(file, blockName, nameLength);
 
-        assert( type == 0x07);
+		assert(type == 0x07);
 
         APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "index", i);
         APPEND_ATTRIBUTE_HEX(xmlData, itemNode, "type", type);

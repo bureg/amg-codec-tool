@@ -26,6 +26,9 @@ ArcWriter writer;
 ScfDecoder scf2xml;
 ScfEncoder xml2scf;
 
+//Added by CirqueForge. Solves all crashing problems.
+Q_IMPORT_PLUGIN(qjpcodecs)
+
 void printHelp()
 {
     printf("Usage:\n");

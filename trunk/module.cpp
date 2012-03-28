@@ -9,6 +9,7 @@
 */
 
 #include "module.h"
+#include "stdio.h"
 
 #include <QString>
 
@@ -17,7 +18,7 @@ Module::Module()
     qstrncpy(moduleName, "Undefined", qstrlen("Undefined"));
 }
 
-Module::Module(char * _moduleName)
+Module::Module(const char * _moduleName)
 {
     size_t lengh = strlen(_moduleName);
     qstrncpy(moduleName,
@@ -25,7 +26,7 @@ Module::Module(char * _moduleName)
              (lengh > MAX_MODULE_NAME_LENGTH) ? (MAX_MODULE_NAME_LENGTH) : (lengh));
 }
 
-void Module::fatalExit(char *reason)
+void Module::fatalExit(const char *reason)
 {
     fprintf(stderr, "Module [%s] operation abort! Reason: [%s]\n", moduleName, reason);
     exit(1);
