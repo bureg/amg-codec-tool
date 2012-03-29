@@ -183,7 +183,7 @@ void ScfDecoder::readCodeSection(QFile &file)
                 break;
 
             default: /* Unknown type */
-                fprintf(stderr, "Type code : 0x%02x @ offset 0x%lx\n", entryType, file.pos());
+                zfprintf(stderr, "Type code : 0x%02x @ offset 0x%lx\n", entryType, (long unsigned int)file.pos());
                 fatalExit("Unknown entry type");
         }
 

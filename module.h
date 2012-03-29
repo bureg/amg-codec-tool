@@ -17,10 +17,10 @@ class Module
 {
 public:
     Module();
-    Module(char * moduleName);
+    Module(const char * moduleName);
 
 protected:
-    void fatalExit(char *reason);
+    void fatalExit(const char *reason);
 
 private:
     static const size_t MAX_MODULE_NAME_LENGTH = 64;

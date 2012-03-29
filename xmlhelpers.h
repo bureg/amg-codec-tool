@@ -114,13 +114,13 @@
     QString _tmpAttrString = node.attribute((name)); \
     if(_tmpAttrString.isNull()) \
     { \
-        fatalExit("Attribute [" ## name ## "] not found!"); \
+        fatalExit("Attribute [" name "] not found!"); \
     } \
     bool ok = false; \
     dest = (type)_tmpAttrString.toInt(&ok, 0); \
     if(!ok) \
     { \
-        fatalExit("Attribute [" ## name ## "] has invalid value!"); \
+        fatalExit("Attribute [" name "] has invalid value!"); \
     } \
 }
 
@@ -135,13 +135,13 @@
     QString _tmpAttrString = node.attribute((name)); \
     if(_tmpAttrString.isNull()) \
     { \
-        fatalExit("Attribute [" ## name ## "] not found!"); \
+        fatalExit("Attribute [" name "] not found!"); \
     } \
     bool ok = false; \
     dest = (type)_tmpAttrString.toUInt(&ok, 0); \
     if(!ok) \
     { \
-        fatalExit("Attribute [" ## name ## "] has invalid value!"); \
+        fatalExit("Attribute [" name "] has invalid value!"); \
     } \
 }
 
@@ -156,7 +156,7 @@
     var = node.attribute((name)); \
     if(var.isNull()) \
     { \
-        fatalExit("Attribute [" ## name ## "] not found or empty!"); \
+        fatalExit("Attribute [" name "] not found or empty!"); \
     } \
 }
 
@@ -165,7 +165,7 @@
     var = root.firstChildElement(name); \
     if (var.isNull()) \
     { \
-        fatalExit("Cannot find <" ## name ## "> node!"); \
+        fatalExit("Cannot find <" name "> node!"); \
     } \
 }
 
