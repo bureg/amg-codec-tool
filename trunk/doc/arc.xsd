@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- Hex value type -->
+    <xs:simpleType name="hexValue_t">
+      <xs:restriction base="xs:string">
+        <xs:pattern value="0x[a-fA-F0-9]+"/>
+      </xs:restriction>
+    </xs:simpleType>
+    
+    <!-- Low-level types -->
+    <xs:complexType name="entry_t">
+      <xs:attribute name="offset" type="hexValue_t"/>
+      <xs:attribute name="size" type="hexValue_t"/>
+      <xs:attribute name="unknown0" type="hexValue_t"/>
+      <xs:attribute name="unknown1" type="hexValue_t"/>
+    </xs:complexType>
+    
+    <xs:complexType name="file_t">
+      <xs:attribute name="offset" type="hexValue_t"/>
+      <xs:attribute name="size" type="hexValue_t"/>
+      <xs:attribute name="type" type="xs:string"/>
+      <xs:attribute name="filename" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- High-level containers -->
+    <xs:complexType name="header_t">
+      <xs:sequence>
+        <xs:element name="undecodedData" type="xs:base64Binary"/>
+      </xs:sequence>
+      <xs:attribute name="entriesCount" type="xs:integer"/>
+      <xs:attribute name="dataOffset" type="hexValue_t"/>
+    </xs:complexType>
+    
+    <xs:complexType name="entries_t">
+      <xs:sequence>
+        <xs:element name="entry" type="entry_t" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="entriesCount" type="xs:integer"/>
+    </xs:complexType>
+    
+    <xs:complexType name="files_t">
+      <xs:sequence>
+        <xs:element name="file" type="file_t" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="entriesCount" type="xs:integer"/>
+    </xs:complexType>
+    
+    <!-- Top-level type -->
+    <xs:complexType name="archive_t">
+      <xs:sequence>
+        <xs:element name="header" type="header_t"/>
+        <xs:element name="entries" type="entries_t"/>
+        <xs:element name="files" type="files_t"/>
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="archive" type="archive_t"/>
+</xs:schema>
