@@ -1,7 +1,6 @@
 /*
   This file is a part of the
   Amagami SS PS2 Translation Project
-  by FreeSmiler
 
   You may feel free to use this code if you want so.
   I provide no guarantee that this code is working,
@@ -19,7 +18,7 @@ ScfDecoder::ScfDecoder() : Module("ScfDecoder")
 
 void ScfDecoder::checkHeader(QFile &file)
 {
-    READ_TO_BUF( file, HEADER_LENGTH);
+    READ_TO_BUF(file, HEADER_LENGTH);
     if( qstrncmp(buffer, header, HEADER_LENGTH))
     {
         fatalExit("Header check FAILED");
@@ -31,25 +30,22 @@ void ScfDecoder::checkLabelsHeader(QFile &file)
     READ_TO_BUF(file, LABELS_HEADER_LENGTH);
     if( qstrncmp(buffer, labelsSectionHeader, LABELS_HEADER_LENGTH))
     {
-        fatalExit("Labels section header check FAILED");
-    }
-}
+        if( qstrncmp(buffer, labelsPSectionHeader, LABELS_PHEADER_LENGTH))
+        {
+            fatalExit("Labels section header check FAILED");
+        }
 
-void ScfDecoder::checkBlocksHeader(QFile &file)
-{
-    READ_TO_BUF(file, BLOCKS_HEADER_LENGTH);
-    if( qstrncmp(buffer, blocksSectionHeader, BLOCKS_HEADER_LENGTH))
-    {
-        fatalExit("Blocks section header check FAILED");
+        else
+        {
+            QDomElement pLablesNode = xmlData.createElement("PACheader");
+            root.appendChild(pLablesNode);
+        }
     }
-}
 
-void ScfDecoder::checkFunctionsHeader(QFile &file)
-{
-    READ_TO_BUF(file, FUNCTIONS_HEADER_LENGTH);
-    if( qstrncmp(buffer, functionsSectionHeader, FUNCTIONS_HEADER_LENGTH))
+    else
     {
-        fatalExit("Functions section header check FAILED");
+        QDomElement hLablesNode = xmlData.createElement("normalHeader");
+        root.appendChild(hLablesNode);
     }
 }
 
@@ -85,14 +81,14 @@ void ScfDecoder::readVariablesSection(QFile &file)
 
     QDomElement varsNode = xmlData.createElement("vars");
 
-    READ_TO_VAR_NONZERO( file, nVars);
+    READ_TO_VAR(file, nVars);
 
     for(size_t i = 0; i < nVars; i++)
     {
         QDomElement itemNode = xmlData.createElement("var");
 
         READ_TO_VAR(file, varId);
-        READ_TO_VAR_NONZERO( file, nameLength);
+        READ_TO_VAR_NONZERO(file, nameLength);
         READ_TO_STRING(file, varName, nameLength);
 
         APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "index", i);
@@ -115,7 +111,7 @@ void ScfDecoder::readBlocksSection(QFile &file)
 
     QDomElement blocksNode = xmlData.createElement("blocks");
 
-    READ_TO_VAR_NONZERO( file, nBlocks);
+    READ_TO_VAR( file, nBlocks);
 
     for(size_t i = 0; i < nBlocks; i++)
     {
@@ -146,51 +142,65 @@ void ScfDecoder::readBlocksSection(QFile &file)
 
 void ScfDecoder::readCodeSection(QFile &file)
 {
-    quint8 entryType;
     quint16 nEntries;
 
     QDomElement codeNode = xmlData.createElement("code");
 
-    READ_TO_VAR_NONZERO( file, nEntries);
+    READ_TO_VAR(file, nEntries);
 
     for(size_t i = 0; i < nEntries; i++)
     {
-        QDomElement itemNode = xmlData.createElement("entry");
-
-        READ_TO_VAR_NONZERO(file, entryType);
-
-        APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "index", i);
-        APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "type", entryType);
-
-        switch (entryType)
-        {
-            case ENTRY_TYPE_01: /* Parameter */
-            case ENTRY_TYPE_03: /* Parameter */
-                processEntryType03(file, itemNode);
-                break;
-
-            case ENTRY_TYPE_05: /* Text */
-                processEntryType05(file, itemNode);
-                break;
-
-            case ENTRY_TYPE_06: /* Function */
-            case ENTRY_TYPE_07: /* Function */
-                processEntryType07(file, itemNode);
-                break;
-
-            case ENTRY_TYPE_08: /* Blocks list */
-                processEntryType08(file, itemNode);
-                break;
-
-            default: /* Unknown type */
-                zfprintf(stderr, "Type code : 0x%02x @ offset 0x%lx\n", entryType, (long unsigned int)file.pos());
-                fatalExit("Unknown entry type");
-        }
-
-        codeNode.appendChild(itemNode);
+        //*Name redacted*: Split switch statement and some other code
+        //so I can nest with 0x08 type and reuse the code for determining that
+        processEntryType(file, codeNode, i);
     }
 
     root.appendChild(codeNode);
+}
+
+void ScfDecoder::processEntryType(QFile &file, QDomElement &parentNode, size_t subi)
+{
+    //Seperate method of handling each type. Split off so I can use it for handling
+    //nesting with the 0x08 function
+    quint8 entryType;
+    QDomElement itemNode = xmlData.createElement("entry");
+
+    READ_TO_VAR(file, entryType);
+
+    APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "index", subi);
+    APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "type", entryType);
+
+    switch (entryType)
+    {
+        case ENTRY_TYPE_00: /* Single byte values */
+        case ENTRY_TYPE_02:
+        case ENTRY_TYPE_04:
+            break;
+
+        case ENTRY_TYPE_01: /* Parameter */
+        case ENTRY_TYPE_03:
+            processEntryType03(file, itemNode);
+            break;
+
+        case ENTRY_TYPE_05: /* Text */
+            processEntryType05(file, itemNode);
+            break;
+
+        case ENTRY_TYPE_06: /* Function */
+        case ENTRY_TYPE_07:
+            processEntryType07(file, itemNode);
+            break;
+
+        case ENTRY_TYPE_08: /* Nested functions */
+            processEntryType08(file, itemNode);
+            break;
+
+        default: /* Unknown type */
+            fprintf(stderr, "Type code : 0x%02x @ offset 0x%lx\n", entryType, (long unsigned int)file.pos());
+            fatalExit("Unknown entry type");
+    }
+
+    parentNode.appendChild(itemNode);
 }
 
 void ScfDecoder::processEntryType03(QFile &file, QDomElement &parentNode)
@@ -198,17 +208,17 @@ void ScfDecoder::processEntryType03(QFile &file, QDomElement &parentNode)
     quint32 value;
     QDomElement itemNode = xmlData.createElement("parameter");
 
-    READ_TO_VAR( file, value);
+    READ_TO_VAR(file, value);
     APPEND_ATTRIBUTE_HEX(xmlData, itemNode, "value", value);
 
     parentNode.appendChild(itemNode);
 }
 
 void ScfDecoder::processTextString( size_t index,
-                                  DataIterator startIt,
-                                  DataIterator finishIt,
-                                  QTextCodec * codec,
-                                  QDomElement &parentNode)
+                                    DataIterator startIt,
+                                    DataIterator finishIt,
+                                    QTextCodec * codec,
+                                    QDomElement &parentNode)
 {
     QByteArray chunk;
     DataIterator copyIt;
@@ -222,6 +232,10 @@ void ScfDecoder::processTextString( size_t index,
     APPEND_ATTRIBUTE_DEC(xmlData, textNode, "index", index);
 
     /* Attach original text */
+    //*Name retracted*: This was where the programs was failing usually in Qt. I suspected it has to do with "codec"
+    //since I debugged and I get that codec = 0x0, which should not be right. Either the program gets a 0xc00005
+    //error by windows or gets a segmentation error by Qt. This was solved by adding the necessary Qt plugin for
+    //Japanese text.
     QDomElement langNodeJp = xmlData.createElement("original");
     QDomText textContainerJp = xmlData.createTextNode(codec->toUnicode(chunk));
     APPEND_ATTRIBUTE_STR(xmlData, langNodeJp, "lang", "jp");
@@ -229,6 +243,7 @@ void ScfDecoder::processTextString( size_t index,
     textNode.appendChild(langNodeJp);
 
     /* Attach a template for translation */
+    //Note: Change the template if you are translating to a different language.
     QDomElement langNodeEng = xmlData.createElement("translation");
     QDomText textContainerEng = xmlData.createTextNode("TODO");
     APPEND_ATTRIBUTE_STR(xmlData, langNodeEng, "lang", "eng");
@@ -240,9 +255,9 @@ void ScfDecoder::processTextString( size_t index,
 }
 
 void ScfDecoder::processAsciiString(size_t index,
-                                  DataIterator startIt,
-                                  DataIterator finishIt,
-                                  QDomElement &parentNode)
+                                    DataIterator startIt,
+                                    DataIterator finishIt,
+                                    QDomElement &parentNode)
 {
     QByteArray chunk;
     DataIterator copyIt;
@@ -266,7 +281,15 @@ void ScfDecoder::processEntryType05(QFile &file, QDomElement &parentNode)
     QByteArray data;
     QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
 
-    READ_TO_VAR_NONZERO( file, dataLength);
+    READ_TO_VAR(file, dataLength); //Anonymous: hack for zero-length 0x05 types
+
+    if (dataLength == 0)
+    {
+        APPEND_ATTRIBUTE_DEC(xmlData, parentNode, "type", (int)5);
+        APPEND_ATTRIBUTE_STR(xmlData, parentNode, "value", "");
+        return;
+    } //end hack.
+
     READ_TO_BYTE_ARRAY(file, data, dataLength);
 
     DataIterator it = data.begin();
@@ -325,7 +348,7 @@ void ScfDecoder::processEntryType07(QFile &file, QDomElement &parentNode)
     QString name;
     QDomElement itemNode = xmlData.createElement("function");
 
-    READ_TO_VAR_NONZERO( file, nameLength);
+    READ_TO_VAR(file, nameLength);
     READ_TO_STRING(file, name, nameLength);
 
     APPEND_ATTRIBUTE_STR(xmlData, itemNode, "name", name);
@@ -335,29 +358,15 @@ void ScfDecoder::processEntryType07(QFile &file, QDomElement &parentNode)
 
 void ScfDecoder::processEntryType08(QFile &file, QDomElement &parentNode)
 {
-    quint8 type;
+    //Pretty self-explanatory. Loop type-handling for however many entries are in the 0x08 type.
     quint16 nBlocks;
-    quint16 nameLength;
-    QString blockName;
 
-    READ_TO_VAR_NONZERO( file, nBlocks);
+	READ_TO_VAR(file, nBlocks);
 
     for(size_t i = 0; i < nBlocks; i++)
-    {
-        QDomElement itemNode = xmlData.createElement("block");
-
-        READ_TO_VAR_NONZERO(file, type);
-        READ_TO_VAR_NONZERO(file, nameLength);
-        READ_TO_STRING(file, blockName, nameLength);
-
-        assert( type == 0x07);
-
-        APPEND_ATTRIBUTE_DEC(xmlData, itemNode, "index", i);
-        APPEND_ATTRIBUTE_HEX(xmlData, itemNode, "type", type);
-        APPEND_ATTRIBUTE_STR(xmlData, itemNode, "name", blockName);
-
-        parentNode.appendChild(itemNode);
-    }
+	{
+		processEntryType(file, parentNode, i);
+	}
 }
 
 void ScfDecoder::load(QString path)
@@ -374,9 +383,9 @@ void ScfDecoder::load(QString path)
     checkLabelsHeader(fileIn);
     readLabelsSection(fileIn);
     readVariablesSection(fileIn);
-    checkBlocksHeader(fileIn);
+    readVariablesSection(fileIn);
     readBlocksSection(fileIn);
-    checkFunctionsHeader(fileIn);
+    readBlocksSection(fileIn);
     readCodeSection(fileIn);
 
     fileIn.close();
@@ -403,4 +412,3 @@ void ScfDecoder::createXml()
     root = xmlData.createElement("root");
     xmlData.appendChild(root);
 }
-

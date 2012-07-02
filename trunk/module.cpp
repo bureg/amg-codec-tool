@@ -1,7 +1,6 @@
 /*
   This file is a part of the
   Amagami SS PS2 Translation Project
-  by FreeSmiler
 
   You may feel free to use this code if you want so.
   I provide no guarantee that this code is working,
@@ -9,7 +8,8 @@
 */
 
 #include "module.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <QString>
 
@@ -28,6 +28,6 @@ Module::Module(const char * _moduleName)
 
 void Module::fatalExit(const char *reason)
 {
-    fprintf(stderr, "Module [%s] operation abort! Reason: [%s]\n", moduleName, reason);
+    fprintf(stderr, "\nModule [%s] operation abort! Reason: [%s]\n", moduleName, reason);
     exit(1);
 }

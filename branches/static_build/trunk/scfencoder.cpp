@@ -13,6 +13,9 @@
 #include "langdb.h"
 #include "scfencoder.h"
 
+//There's an empty element for some reason and this is needed to account for the miscount.
+QDomElement previousNode;
+
 ScfEncoder::ScfEncoder() : Module("ScfEncoder"), lang(LANGUAGE_JAP)
 {
 }
@@ -48,16 +51,6 @@ void ScfEncoder::outputScfHeader(QFile &file)
 void ScfEncoder::outputLabelsHeader(QFile &file)
 {
     WRITE_HEADER(file, labelsSectionHeader, LABELS_HEADER_LENGTH);
-}
-
-void ScfEncoder::outputBlocksHeader(QFile &file)
-{
-    WRITE_HEADER(file, blocksSectionHeader, BLOCKS_HEADER_LENGTH);
-}
-
-void ScfEncoder::outputFunctionsHeader(QFile &file)
-{
-    WRITE_HEADER(file, functionsSectionHeader, FUNCTIONS_HEADER_LENGTH);
 }
 
 void ScfEncoder::outputLabels(QFile &file)
@@ -378,10 +371,14 @@ void ScfEncoder::saveScf(QString path)
     outputScfHeader(fileOut);
     outputLabelsHeader(fileOut);
     outputLabels(fileOut);
+
+    GET_NODE(root, "labels", previousNode);
+
     outputVariables(fileOut);
-    outputBlocksHeader(fileOut);
+    outputVariables(fileOut);
     outputBlocks(fileOut);
-    outputFunctionsHeader(fileOut);
+    outputBlocks(fileOut);
+
     outputCodeSection(fileOut);
 
     fileOut.close();

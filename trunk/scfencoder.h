@@ -36,9 +36,7 @@ private:
     void outputLabelsHeader(QFile &file);
     void outputScfHeader(QFile &file);
     void outputVariables(QFile &file);
-    void outputBlocksHeader(QFile &file);
     void outputBlocks(QFile &file);
-    void outputFunctionsHeader(QFile &file);
     void outputCodeSection(QFile &file);
     void processEntryType03(QFile &file, QDomElement &parentNode);
     void processEntryType05(QFile &file, QDomElement &parentNode);

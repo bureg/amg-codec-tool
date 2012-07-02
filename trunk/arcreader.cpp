@@ -1,7 +1,6 @@
 /*
   This file is a part of the
   Amagami SS PS2 Translation Project
-  by FreeSmiler
 
   You may feel free to use this code if you want so.
   I provide no guarantee that this code is working,
@@ -143,8 +142,8 @@ int ArcReader::extract(QString outputDir)
         }
         else if (qstrncmp(fileData.data(), "TIM2", 4) == 0)
         {
-            fileName.sprintf("file_%04d.tim2", fileCounter);
-            fileType.append("TIM2");
+            fileName.sprintf("file_%04d.tm2", fileCounter);
+            fileType.append("TM2");
         }
         else
         {

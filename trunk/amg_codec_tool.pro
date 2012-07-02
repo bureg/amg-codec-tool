@@ -5,14 +5,11 @@
 #-------------------------------------------------
 
 QT       += core xml
-QT       -= gui
 
 TARGET = amg_codec_tool
 CONFIG   += console
-CONFIG   -= app_bundle
 
 TEMPLATE = app
-
 
 SOURCES += main.cpp \
     arcreader.cpp \
@@ -21,7 +18,14 @@ SOURCES += main.cpp \
     scfencoder.cpp \
     scfdecoder.cpp \
     module.cpp \
-    langdb.cpp
+    langdb.cpp \
+    swizzleprocessor.cpp \
+    tm2alphafixer.cpp \
+    xmlsync.cpp \
+    imgextractor.cpp \
+    scfrenamer.cpp \
+    cltprocessor.cpp \
+    xmlrenamer.cpp \
 
 HEADERS += \
     arcreader.h \
@@ -33,4 +37,11 @@ HEADERS += \
     defines.h \
     module.h \
     xmlhelpers.h \
-    langdb.h
+    langdb.h \
+    swizzleprocessor.h \
+    tm2alphafixer.h \
+    xmlsync.h \
+    imgextractor.h \
+    scfrenamer.h \
+    cltprocessor.h \
+    xmlrenamer.h
