@@ -1,7 +1,6 @@
 /*
   This file is a part of the
   Amagami SS PS2 Translation Project
-  by FreeSmiler
 
   You may feel free to use this code if you want so.
   I provide no guarantee that this code is working,
@@ -31,12 +30,11 @@ private:
     void createXml();
     void checkHeader(QFile &file);
     void checkLabelsHeader(QFile &file);
-    void checkFunctionsHeader(QFile &file);
     void readLabelsSection(QFile &file);
     void readVariablesSection(QFile &file);
-    void checkBlocksHeader(QFile &file);
     void readBlocksSection(QFile &file);
     void readCodeSection(QFile &file);
+    void processEntryType(QFile &file, QDomElement &parentNode, size_t subi);
     void processEntryType03(QFile &file, QDomElement &parentNode);
     void processTextString(size_t index,
                            DataIterator startIt,
