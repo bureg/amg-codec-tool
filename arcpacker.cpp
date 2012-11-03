@@ -40,6 +40,7 @@ inline void ArcPacker::putFileSize( QFile &file, quint32 size)
 inline int ArcPacker::refillBuffer(QFile &inFile)
 {
     // TODO: optimize
+    // inFile.map(inFile.pos(), inFile.size());
     while((encBufLast - encBufPos < BUF_REFILL_AMOUNT) && !inFile.atEnd())
     {
         inFile.read((char*)(encBuf + (encBufLast % ENC_BUF_SZ)), 1);
@@ -118,28 +119,54 @@ inline int ArcPacker::findBestMatch( match_info_t &matchInfo, size_t blockSize)
 
     matchInfo.chunkStart = chunkStart;
 
-    for(size_t pos = (bufPos - 2) % BUF_SZ;
-        pos != ((bufPos + blockSize + maxMatchedLength) % BUF_SZ);
-        --pos, pos = pos % BUF_SZ)
+    HashManager::HashEntry * list = hashManager.FindByValue(chunkStart);
+
+    while(list)
     {
-        if(buf[pos] == chunkStart)
+        size_t pos = list->offset;
+
+        size_t newPos = pos + 1;
+        size_t newReadBufPos = encBufPos + 1;
+        size_t matchedLength = 1;
+
+        scanBuffer(newPos, newReadBufPos, matchedLength);
+
+        if((matchedLength >= MIN_MATCH_LENGTH) && (matchedLength > maxMatchedLength))
         {
-            size_t newPos = pos + 1;
-            size_t newReadBufPos = encBufPos + 1;
-            size_t matchedLength = 1;
+            bool ok = true;
 
-            scanBuffer(newPos, newReadBufPos, matchedLength);
+            size_t posStart = (bufPos - 2) % BUF_SZ;
+            size_t posFinish = (bufPos + blockSize + maxMatchedLength) % BUF_SZ;
 
-            if((matchedLength >= MIN_MATCH_LENGTH) && (matchedLength > maxMatchedLength))
+            assert(posStart != posFinish);
+
+            if(posStart > posFinish)
+            {
+                if((pos <= posFinish) || (pos > posStart))
+                {
+                    ok = false;
+                }
+            }
+            else
+            {
+                if((pos <= posFinish) && (pos > posStart))
+                {
+                    ok = false;
+                }
+            }
+
+            if(ok)
             {
                 maxMatchedLength = matchedLength;
                 maxChunkStart = pos;
                 found = true;
             }
         }
+
+        list = list->next;
     }
 
-    if(found)
+    if(found && (maxMatchedLength) >= MIN_MATCH_LENGTH)
     {
         matchInfo.valid = true;
         matchInfo.maxChunkStart = maxChunkStart;
@@ -166,9 +193,15 @@ inline quint16 ArcPacker::makeRef(size_t maxChunkStart, size_t maxMatchedLength)
 
 inline int ArcPacker::flushToBuffer(size_t length)
 {
+    hashManager.ClearByOffset(bufPos, length);
     for(size_t i = 0; i < length; ++i)
     {
-        buf[bufPos % BUF_SZ] = getEncBufItem(encBufPos);
+        quint8 value = getEncBufItem(encBufPos);
+        buf[bufPos % BUF_SZ] = value;
+
+        //fprintf(stderr, "GLOB add 0x%x to offset %d\n", value, bufPos % BUF_SZ);
+        hashManager.AddEntry(value, bufPos % BUF_SZ);
+
         ++bufPos;
         ++encBufPos;
     }
@@ -204,10 +237,7 @@ inline int ArcPacker::fillBlockEntry(packed_block_t &block, size_t index, match_
         block.entry[index].start = bufPos % BUF_SZ;
         block.entry[index].length = 1;
 
-        buf[bufPos % BUF_SZ] = chunkStart;
-
-        ++bufPos;
-        ++encBufPos;
+        flushToBuffer(1);
 
         bytesEncoded += 1;
 
@@ -215,11 +245,11 @@ inline int ArcPacker::fillBlockEntry(packed_block_t &block, size_t index, match_
     }
 }
 
-int ArcPacker::dumpToFile(QFile &outFile, packed_block_t &block)
+int ArcPacker::dumpToFile(QFile &outFile, packed_block_t &block, int maxEntry = 8)
 {
     outFile.write((char*)&block.header, sizeof(quint8));
 
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < maxEntry; i++)
     {
         if(block.entry[i].isRef)
         {
@@ -236,6 +266,7 @@ int ArcPacker::dumpToFile(QFile &outFile, packed_block_t &block)
 
 int ArcPacker::pack(QString inFilePath, QString outFilePath)
 {
+    int i;
     packed_block_t block;
 
     QFile inputFile(inFilePath);
@@ -255,7 +286,7 @@ int ArcPacker::pack(QString inFilePath, QString outFilePath)
         size_t blockSize = 0;
         block.header = 0x00;
 
-        for(int i = 0; i < 8; i++)
+        for(i = 0; i < 8; i++)
         {
             match_info_t match;
             block.header >>= 1;
@@ -281,11 +312,20 @@ int ArcPacker::pack(QString inFilePath, QString outFilePath)
 
             findBestMatch(match, blockSize);
             blockSize += fillBlockEntry(block, i, match);
+#if 0
+            // Debug dumps
+            fprintf(stderr, "Block [%d] :\n", i);
+            fprintf(stderr, "isRef  : %d\n", block.entry[i].isRef);
+            fprintf(stderr, "ref    : %x\n", block.entry[i].ref);
+            fprintf(stderr, "value  : %x\n", block.entry[i].value);
+            fprintf(stderr, "start  : %x\n", block.entry[i].start);
+            fprintf(stderr, "length : %d\n", block.entry[i].length);
+#endif
         }
 
         if(stop)
         {
-            dumpToFile(outputFile, block);
+            dumpToFile(outputFile, block, i);
             break;
         }
 
@@ -296,6 +336,8 @@ int ArcPacker::pack(QString inFilePath, QString outFilePath)
         if((counter % 10000) == 0)
         {
             fprintf(stderr, "Processed: %d blocks\n", counter);
+            //getchar();
+            //break;
         }
     }
 
@@ -363,10 +405,21 @@ int ArcPacker::unpack(QString inFilePath, QString outFilePath)
                 bufPos += length;
             }
 
+            /* Block can be terminated by global limit */
+            if(bytesWritten == unpackedSize)
+            {
+                break;
+            }
+
             bufPos = bufPos % BUF_SZ;
             blockHeader >>= 1;
         }
     }
+
+    fprintf(stderr, "Bytes written: 0x%x\n", bytesWritten);
+    fprintf(stderr, "Bytes expected: 0x%x\n", unpackedSize);
+
+    assert( bytesWritten == unpackedSize );
 
     // -- Finalize
     inFile.close();

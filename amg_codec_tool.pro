@@ -26,6 +26,7 @@ SOURCES += main.cpp \
     scfrenamer.cpp \
     cltprocessor.cpp \
     xmlrenamer.cpp \
+    hashmanager.cpp
 
 HEADERS += \
     arcreader.h \
@@ -44,4 +45,5 @@ HEADERS += \
     imgextractor.h \
     scfrenamer.h \
     cltprocessor.h \
-    xmlrenamer.h
+    xmlrenamer.h \
+    hashmanager.h

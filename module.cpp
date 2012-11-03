@@ -20,10 +20,10 @@ Module::Module()
 
 Module::Module(const char * _moduleName)
 {
-    size_t lengh = strlen(_moduleName);
+    size_t length = strlen(_moduleName) + 1;
     qstrncpy(moduleName,
              _moduleName,
-             (lengh > MAX_MODULE_NAME_LENGTH) ? (MAX_MODULE_NAME_LENGTH) : (lengh));
+             (length > MAX_MODULE_NAME_LENGTH) ? (MAX_MODULE_NAME_LENGTH) : (length));
 }
 
 void Module::fatalExit(const char *reason)
