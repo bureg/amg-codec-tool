@@ -10,6 +10,8 @@
 #ifndef MODULE_H
 #define MODULE_H
 
+#include <assert.h>
+
 #include <QtGlobal>
 
 class Module

@@ -16,6 +16,7 @@
 
 #include "datatypes.h"
 #include "module.h"
+#include "hashmanager.h"
 
 class ArcPacker : public Module
 {
@@ -31,7 +32,7 @@ private:
     int refillBuffer(QFile &inFile);
     int openFiles(QFile &input, QFile &output);
     int findBestMatch(match_info_t &matchInfo, size_t blockSize);
-    int dumpToFile(QFile &outFile, packed_block_t &block);
+    int dumpToFile(QFile &outFile, packed_block_t &block, int maxEntry);
     int fillBlockEntry(packed_block_t &block, size_t index, match_info_t &match);
     int flushToBuffer(size_t length);
     void scanBuffer(size_t &newBufPos, size_t &newEncBufPos, size_t &matchedLength);
@@ -63,6 +64,8 @@ private:
     size_t encBufLast;
     size_t bytesEncoded;
     size_t bufPos;
+
+    HashManager hashManager;
 };
 
 #endif // ARCPACKER_H
