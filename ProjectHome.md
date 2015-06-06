@@ -1,0 +1,1 @@
+Amagami game file manipulation tool. Supports EbiKore+ and Original versions of the game.
